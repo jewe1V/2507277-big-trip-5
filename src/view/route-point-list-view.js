@@ -1,9 +1,5 @@
 import { createElement } from '../render.js';
 
-function createPointListTemplate() {
-  return '<ul class="trip-events__list"></ul>';
-}
-
 export default class RoutePointListView {
   getTemplate() {
     return createPointListTemplate();
@@ -20,4 +16,8 @@ export default class RoutePointListView {
   removeElement() {
     this.element = null;
   }
+}
+
+function createPointListTemplate() {
+  return '<ul class="trip-events__list"></ul>';
 }
