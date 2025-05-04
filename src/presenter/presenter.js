@@ -4,6 +4,7 @@ import SortingView from '../view/sorting-view';
 import RoutePointView from '../view/route-point-view';
 import RoutePointListView from '../view/route-point-list-view';
 import EditFormView from '../view/edit-form-view';
+import ListEmptyView from '../view/list-empty-view';
 
 export default class Presenter {
   #routePointListComponent = new RoutePointListView();
@@ -20,15 +21,29 @@ export default class Presenter {
   init() {
     const events = this.eventModel.getEvents();
 
-    render(new FiltersView(), this.tripControlFilters);
+    render(new FiltersView(this.#generateFilters(events)), this.tripControlFilters);
     render(new SortingView(), this.tripEvents);
-    render(this.#routePointListComponent, this.tripEvents);
 
+    if (events.length === 0) {
+      render(new ListEmptyView(), this.tripEvents);
+      return;
+    }
+
+    render(this.#routePointListComponent, this.tripEvents);
     for (let i = 0; i < Math.min(3, events.length); i++) {
       this.#renderRoutePoint(events[i]);
     }
 
-    document.addEventListener('keydown', this.#handleEscapeKey.bind(this));
+    document.addEventListener('keydown', this.#handleEscapeKey);
+  }
+
+  #generateFilters(events) {
+    return [
+      { name: 'everything', isDisabled: events.length === 0 },
+      { name: 'future', isDisabled: !events.some((event) => event.dateFrom > Date.now()) },
+      { name: 'past', isDisabled: !events.some((event) => event.dateTo < Date.now()) },
+      { name: 'present', isDisabled: !events.some((event) => event.dateTo === Date.now()) },
+    ];
   }
 
   #renderRoutePoint(event) {
@@ -63,7 +78,7 @@ export default class Presenter {
     this.#routePointListComponent.element.replaceChild(routePointComponent.element, editFormComponent.element);
   }
 
-  #handleEscapeKey(evt) {
+  #handleEscapeKey = (evt) => {
     if (evt.key === 'Escape') {
       for (const [routePointComponent, editFormComponent] of this.#routePointsComponents) {
         if (this.#routePointListComponent.element.contains(editFormComponent.element)) {
@@ -72,5 +87,5 @@ export default class Presenter {
         }
       }
     }
-  }
+  };
 }
