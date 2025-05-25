@@ -1,7 +1,7 @@
-import { filter } from '../consts';
+import { Filter } from '../consts';
 
 function generateFilter(points) {
-  return Object.entries(filter).map(([filterType, filterPoints]) => ({
+  return Object.entries(Filter).map(([filterType, filterPoints]) => ({
     type: filterType,
     count: filterPoints(points).length
   }));
