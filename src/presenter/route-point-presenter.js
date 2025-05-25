@@ -1,4 +1,4 @@
-import { render, replace} from '../framework/render.js';
+import { render, replace, remove} from '../framework/render.js';
 import RoutePointView from '../view/route-point-view.js';
 import EditFormView from '../view/edit-form-view.js';
 import { isEscapeKey } from '../utils.js';
@@ -72,6 +72,12 @@ export default class RoutePointPresenter {
     if (this.#mode === Mode.EDITING) {
       replace(this.#editFormItem, prevEditFormComponent);
     }
+  }
+
+  destroy() {
+    remove(this.#pointItem);
+    remove(this.#editFormItem);
+    document.removeEventListener('keydown', this.#escKeyHandler);
   }
 
   resetView() {

@@ -7,19 +7,11 @@ const Formats = {
   TIME_TAG_VALUE: 'YYYY-MM-DD'
 };
 
-
-const FilterType = {
-  EVERYTHING:'everything',
-  FUTURE:'future',
-  PRESENT: 'present',
-  PAST:'past',
-};
-
-const filter = {
-  [FilterType.EVERYTHING]: (points) => [...points],
-  [FilterType.FUTURE]: (points) => points.filter((point) => isPointFuture(point)),
-  [FilterType.PRESENT]: (points) => points.filter((point) => isPointPresent(point)),
-  [FilterType.PAST]: (points) => points.filter((point) => isPointPast(point))
+const Filter = {
+  'everything': (points) => [...points],
+  'future': (points) => points.filter((point) => isPointFuture(point)),
+  'present': (points) => points.filter((point) => isPointPresent(point)),
+  'past': (points) => points.filter((point) => isPointPast(point))
 };
 
 const Mode = {
@@ -27,4 +19,12 @@ const Mode = {
   EDITING: 'EDITING'
 };
 
-export { Formats, filter, Mode };
+const SortType = {
+  DAY: 'day',
+  TIME: 'time',
+  PRICE: 'price',
+  EVENT: 'event',
+  OFFER: 'offer'
+};
+
+export { Formats, Filter, Mode, SortType };
