@@ -2,7 +2,7 @@ import { getRandomInt } from '../utils';
 const MIN_PRICE = 10;
 const MAX_PRICE = 100;
 
-export const offersMock = [
+const offersMock = [
   {
     type: 'taxi',
     offers: [
@@ -63,3 +63,5 @@ export const offersMock = [
     offers: []
   }
 ];
+
+export { offersMock };

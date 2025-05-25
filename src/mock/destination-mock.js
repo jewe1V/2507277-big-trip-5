@@ -1,4 +1,4 @@
-export const destinationsMock = [
+const destinationsMock = [
   {
     id: 1,
     description: 'Chamonix, nestled in the heart of the French Alps, is a haven for adventurers. Known for its breathtaking views of Mont Blanc and world-class skiing, this charming town blends alpine tradition with vibrant energy.',
@@ -76,3 +76,4 @@ export const destinationsMock = [
   }
 ];
 
+export {destinationsMock};

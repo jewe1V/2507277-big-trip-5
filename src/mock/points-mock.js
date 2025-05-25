@@ -2,7 +2,7 @@ import { getRandomInt } from '../utils';
 const MIN_PRICE = 1000;
 const MAX_PRICE = 5000;
 
-export const EventsMock = [
+const PointsMock = [
   {
     id: 1,
     basePrice: getRandomInt(MIN_PRICE,MAX_PRICE),
@@ -44,3 +44,5 @@ export const EventsMock = [
     type: 'sightseeing'
   }
 ];
+
+export { PointsMock };

@@ -1,13 +1,62 @@
-export function getRandomInt(min, max) {
+import dayjs from 'dayjs';
+import { offersMock } from './mock/offers-mock';
+
+function convertDate(date, newFormat) {
+  return dayjs(date).format(newFormat);
+}
+
+function getDestinationById(id, destinations) {
+  return destinations.find((destination) => destination.id === id);
+}
+
+function getDuration(dateFrom, dateTo){
+  const start = dayjs(dateFrom);
+  const end = dayjs(dateTo);
+  const difference = end.diff(start, 'minute');
+
+  if (difference > (60 * 24)) {
+    const days = Math.floor(difference / (60 * 24));
+    const remainder = difference % (60 * 24);
+    const hours = Math.floor(remainder / 60);
+    const minutes = remainder % 60;
+    return `${String(days).padStart(2,'0')}D ${String(hours).padStart(2, '0')}H ${String(minutes).padStart(2, '0')}M`;
+  } else if (difference > 60){
+    const hours = Math.floor(difference / 60);
+    const minutes = difference % 60;
+    return `${String(hours).padStart(2,'0')}H ${String(minutes).padStart(2,'0')}M`;
+  } else {
+    return `${String(difference).padStart(2,'0')}M`;
+  }
+}
+
+function getOffersByType(point) {
+  return offersMock.find((offer) => offer.type === point.type).offers;
+}
+
+function getRandomInt(min, max) {
+  min = Math.ceil(min);
+  max = Math.floor(max);
   return Math.floor(Math.random() * (max - min + 1)) + min;
 }
 
-export function formatDate(isoDate){
-  const date = new Date(isoDate);
-  const day = date.getUTCDate();
-  const month = (date.getUTCMonth() + 1).toString().padStart(2, '0');
-  const year = date.getUTCFullYear().toString().slice(-2);
-  const hours = date.getUTCHours().toString().padStart(2, '0');
-  const minutes = date.getUTCMinutes().toString().padStart(2, '0');
-  return `${day}/${month}/${year} ${hours}:${minutes}`;
+function isEscapeKey(evt) {
+  return evt.key === 'Escape';
 }
+
+function isPointPresent(point) {
+  return dayjs().isAfter(dayjs(point.dateFrom)) && dayjs().isBefore(dayjs(point.dateTo));
+}
+
+function isPointFuture(point) {
+  return dayjs().isBefore(dayjs(point.dateFrom));
+}
+
+function isPointPast(point) {
+  return dayjs().isAfter(dayjs(point.dateTo));
+}
+
+function updatePointData(points, updatedPointData) {
+  return points.map((point) => point.id === updatedPointData.id ? updatedPointData : point);
+}
+
+export { convertDate, getDestinationById, getDuration, getOffersByType, getRandomInt, isEscapeKey, isPointPresent, isPointFuture, isPointPast, updatePointData };
