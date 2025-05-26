@@ -1,5 +1,6 @@
 import dayjs from 'dayjs';
 import { offersMock } from './mock/offers-mock';
+import { destinationsMock } from './mock/destination-mock.js';
 
 function convertDate(date, newFormat) {
   return dayjs(date).format(newFormat);
@@ -55,8 +56,8 @@ function isPointPast(point) {
   return dayjs().isAfter(dayjs(point.dateTo));
 }
 
-function updatePointData(points, updatedPointData) {
-  return points.map((point) => point.id === updatedPointData.id ? updatedPointData : point);
-}
+const getAllDestinations = () => destinationsMock;
 
-export { convertDate, getDestinationById, getDuration, getOffersByType, getRandomInt, isEscapeKey, isPointPresent, isPointFuture, isPointPast, updatePointData };
+const getAllOffers = () => offersMock;
+
+export { convertDate, getDestinationById, getDuration, getOffersByType, getRandomInt, isEscapeKey, isPointPresent, isPointFuture, isPointPast, getAllDestinations, getAllOffers};
