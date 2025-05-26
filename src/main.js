@@ -1,12 +1,17 @@
 import MainPresenter from './presenter/main-presenter';
 import PointModel from './model/point-model';
-import DestinationModel from './model/destination-model';
-import OfferModel from './model/offers-model';
+import FilterModel from './model/filter-model';
+import FilterPresenter from './presenter/filter-presenter';
 
 const pointModel = new PointModel();
-const destinationModel = new DestinationModel();
-const offerModel = new OfferModel();
+const filterModel = new FilterModel();
 
-const presenter = new MainPresenter({pointModel, offerModel, destinationModel});
+const presenter = new MainPresenter({pointModel, filterModel});
+const filterPresenter = new FilterPresenter({
+  filterContainer: document.querySelector('.trip-controls__filters'),
+  filterModel,
+  pointModel
+});
 
 presenter.init();
+filterPresenter.init();
