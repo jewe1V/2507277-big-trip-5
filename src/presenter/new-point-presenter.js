@@ -18,12 +18,6 @@ export default class NewPointPresenter {
   }
 
   init() {
-    console.log('NewPointPresenter: Initializing new point form');
-    if (this.#formComponent) {
-      console.log('NewPointPresenter: Form already exists');
-      return;
-    }
-
     this.#formComponent = new CreateFormView({
       offers: this.#pointModel.offers,
       destinations: this.#pointModel.destinations,
@@ -36,7 +30,6 @@ export default class NewPointPresenter {
   }
 
   destroy() {
-    console.log('NewPointPresenter: Destroying new point form');
     if (!this.#formComponent) {
       return;
     }
@@ -49,19 +42,16 @@ export default class NewPointPresenter {
   #escKeyHandler = (evt) => {
     if (isEscapeKey(evt)) {
       evt.preventDefault();
-      console.log('NewPointPresenter: Escape key pressed');
       this.destroy();
     }
   };
 
   #formSubmitHandler = (point) => {
-    console.log('NewPointPresenter: Form submitted', point);
     this.#handleDataChange(UserAction.ADD_POINT, UpdateType.MAJOR, point);
     this.destroy();
   };
 
   #formResetHandler = () => {
-    console.log('NewPointPresenter: Form reset');
     this.destroy();
   };
 }
