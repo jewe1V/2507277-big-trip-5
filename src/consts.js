@@ -27,4 +27,6 @@ const SortType = {
   OFFER: 'offer'
 };
 
-export { Formats, Filter, Mode, SortType };
+const EVENT_TYPES = ['taxi', 'bus', 'train', 'ship', 'drive', 'flight', 'check-in', 'sightseeing', 'restaurant'];
+
+export { Formats, Filter, Mode, SortType, EVENT_TYPES };

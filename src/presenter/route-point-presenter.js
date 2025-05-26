@@ -49,13 +49,10 @@ export default class RoutePointPresenter {
 
     this.#editFormItem = new EditFormView({
       point: this.#point,
+      offers: this.#offers,
       destinations: this.#destinations,
-      onRollButtonClick: () => {
-        this.#replaceEditFormToPoint();
-      },
-      onSubmitClick: () => {
-        this.#replaceEditFormToPoint();
-      }
+      onFormSubmit: this.#editFormSubmitHandler,
+      onFormReset: this.#editFormResetHandler
     });
 
     if (prevPointComponent === null || prevEditFormComponent === null) {
@@ -87,7 +84,7 @@ export default class RoutePointPresenter {
   }
 
   #replacePointToEditForm() {
-    this.#handleModeChange(); // Уведомляем о смене режима
+    this.#handleModeChange();
     replace(this.#editFormItem, this.#pointItem);
     document.addEventListener('keydown', this.#escKeyHandler);
     this.#mode = Mode.EDITING;
@@ -102,4 +99,16 @@ export default class RoutePointPresenter {
   #addToFaivorite() {
     this.#handleDataChange({ ...this.#point, isFavorite: !this.#point.isFavorite });
   }
+
+  #editFormSubmitHandler = (point) => {
+    this.#handleDataChange(point);
+    this.#replaceEditFormToPoint();
+    document.removeEventListener('keydown', this.#escKeyHandler);
+  };
+
+  #editFormResetHandler = () => {
+    this.#editFormItem.reset(this.#point);
+    this.#replaceEditFormToPoint();
+    document.removeEventListener('keydown', this.#escKeyHandler);
+  };
 }
