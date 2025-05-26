@@ -61,4 +61,11 @@ const EditFormType = {
   ADD: 'ADD'
 };
 
-export { Formats, filter, Mode, SortType, EVENT_TYPES, UpdateType, FilterType, EmptyListMessages, UserAction, EditFormType };
+const Method = {
+  GET: 'GET',
+  PUT: 'PUT',
+  POST: 'POST',
+  DELETE: 'DELETE',
+};
+
+export { Formats, filter, Mode, SortType, EVENT_TYPES, UpdateType, FilterType, EmptyListMessages, UserAction, EditFormType, Method };
