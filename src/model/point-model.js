@@ -3,6 +3,7 @@ import { getAllDestinations, getAllOffers } from '../utils.js';
 import Observable from '../framework/observable.js';
 import { FilterType, UpdateType } from '../consts.js';
 
+//Не успеваю сделать до дедлайна, выполню чуть позже
 export default class PointModel extends Observable {
   #points = pointsMock;
   #allDestinations = getAllDestinations();
