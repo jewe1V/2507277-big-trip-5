@@ -1,112 +1,85 @@
-import { pointsMock } from '../mock/points-mock.js';
-import { getAllDestinations, getAllOffers } from '../utils.js';
 import Observable from '../framework/observable.js';
-import { FilterType, UpdateType } from '../consts.js';
+import { UpdateType } from '../consts.js';
 
-//Не успеваю сделать до дедлайна, выполню чуть позже
 export default class PointModel extends Observable {
-  #points = pointsMock;
-  #allDestinations = getAllDestinations();
-  #allOffers = getAllOffers();
-  #currentFilter = FilterType.EVERYTHING;
+  #points = [];
+  #pointsApiService = null;
+  #isLoading = true;
+  #isLoadingFailed = false;
 
-  setFilter(filter) {
-    this.#currentFilter = filter;
-    this._notify(UpdateType.FILTER, filter);
+  constructor(pointApiService) {
+    super();
+    this.#pointsApiService = pointApiService;
+  }
+
+  async init() {
+    try {
+      const points = await this.#pointsApiService.points;
+      this.#points = points.map(this.#adaptPointToClient);
+    } catch (e) {
+      this.#isLoadingFailed = true;
+      this.#points = [];
+    }
+    this.#isLoading = false;
+    this._notify(UpdateType.INIT, { isLoadingFailed: this.#isLoadingFailed });
   }
 
   get points() {
-    const currentDate = new Date();
+    return [...this.#points];
+  }
 
-    switch (this.#currentFilter) {
-      case FilterType.EVERYTHING:
-        return [...this.#points];
-      case FilterType.PAST:
-        return [...this.#points].filter((point) => new Date(point.dateTo) < currentDate);
-      case FilterType.PRESENT:
-        return [...this.#points].filter((point) => new Date(point.dateFrom) <= currentDate && new Date(point.dateTo) >= currentDate);
-      case FilterType.FUTURE:
-        return [...this.#points].filter((point) => new Date(point.dateFrom) > currentDate);
-      default:
-        return [...this.#points];
+  get isLoading() {
+    return this.#isLoading;
+  }
+
+  get isLoadingFailed() {
+    return this.#isLoadingFailed;
+  }
+
+  async updatePoints(updateType, update) {
+    try {
+      const response = await this.#pointsApiService.updatePoint(update);
+      const updatedPoint = this.#adaptPointToClient(response);
+      const index = this.#points.findIndex((point) => point.id === update.id);
+      this.#points = [...this.#points.slice(0, index), updatedPoint, ...this.#points.slice(index + 1)];
+      this._notify(updateType, updatedPoint);
+    } catch (error) {
+      throw new Error(`Ошибка при обновлении точки: ${error.message}`);
     }
   }
 
-  get destinations() {
-    return [...this.#allDestinations];
-  }
-
-  get offers() {
-    return [...this.#allOffers];
-  }
-
-  getAllDestinations() {
-    return [...this.#allDestinations];
-  }
-
-  updateDestination(updateType, update) {
-    const index = this.#allDestinations.findIndex((dest) => dest.id === update.id);
-
-    if (index === -1) {
-      throw new Error('Can\'t update unexisting destination');
+  async addPoints(updateType, point) {
+    try {
+      const response = await this.#pointsApiService.addPoint(point);
+      const update = this.#adaptPointToClient(response);
+      this.#points = [update, ...this.#points];
+      this._notify(updateType, update);
+    } catch (error) {
+      throw new Error(`Ошибка при добавлении точки: ${error.message}`);
     }
-
-    this.#allDestinations = [
-      ...this.#allDestinations.slice(0, index),
-      update,
-      ...this.#allDestinations.slice(index + 1)
-    ];
-
-    this._notify(updateType, update);
   }
 
-  addDestination(updateType, update) {
-    this.#allDestinations = [
-      update,
-      ...this.#allDestinations
-    ];
-
-    this._notify(updateType, update);
-  }
-
-  updatePoint(updateType, update) {
-    const index = this.#points.findIndex((point) => point.id === update.id);
-
-    if (index === -1) {
-      throw new Error('Can\'t update unexisting point');
+  async deletePoints(updateType, update) {
+    try {
+      await this.#pointsApiService.deletePoint(update);
+      const index = this.#points.findIndex((point) => point.id === update.id);
+      this.#points = [...this.#points.slice(0, index), ...this.#points.slice(index + 1)];
+      this._notify(updateType, update);
+    } catch (error) {
+      throw new Error(`Ошибка при удалении точки: ${error.message}`);
     }
-
-    this.#points = [
-      ...this.#points.slice(0, index),
-      update,
-      ...this.#points.slice(index + 1)
-    ];
-
-    this._notify(updateType, update);
   }
 
-  addPoint(updateType, update) {
-    this.#points = [
-      update,
-      ...this.#points
-    ];
-
-    this._notify(updateType, update);
-  }
-
-  deletePoint(updateType, update) {
-    const index = this.#points.findIndex((point) => point.id === update.id);
-
-    if (index === -1) {
-      throw new Error('Can\'t update unexisting point');
-    }
-
-    this.#points = [
-      ...this.#points.slice(0, index),
-      ...this.#points.slice(index + 1)
-    ];
-
-    this._notify(updateType, update);
+  #adaptPointToClient(point) {
+    return {
+      id: point.id,
+      type: point.type,
+      destination: point.destination,
+      dateFrom: point.date_from,
+      dateTo: point.date_to,
+      basePrice: point.base_price,
+      offers: point.offers,
+      isFavorite: point.is_favorite
+    };
   }
 }
-

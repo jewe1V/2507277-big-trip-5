@@ -1,6 +1,7 @@
 import { render, replace, remove } from '../framework/render.js';
 import FiltersView from '../view/filters-view.js';
 import { FilterType, UpdateType } from '../consts.js';
+import {filterPoints} from '../utils';
 
 export default class FilterPresenter {
   #filterContainer = null;
@@ -8,60 +9,50 @@ export default class FilterPresenter {
   #pointModel = null;
   #filterComponent = null;
 
-  constructor({ filterContainer, filterModel, pointModel }) {
+  constructor(filterContainer, filterModel, pointModel) {
     this.#filterContainer = filterContainer;
     this.#filterModel = filterModel;
     this.#pointModel = pointModel;
+    this.#pointModel.addObserver(this.#onModelEvent);
+    this.#filterModel.addObserver(this.#onModelEvent);
   }
+
+  #onModelEvent = () => {
+    this.init();
+  };
 
   init() {
     const filters = this.#generateFilters();
     const prevFilterComponent = this.#filterComponent;
+    const currentFilterType = this.#filterModel.filter;
 
     this.#filterComponent = new FiltersView({
       filters,
+      currentFilterType,
       onFilterTypeChange: this.#handleFilterTypeChange.bind(this)
     });
 
-    if (prevFilterComponent === null) {
+    if (!prevFilterComponent) {
       render(this.#filterComponent, this.#filterContainer);
-      return;
+    } else {
+      replace(this.#filterComponent, prevFilterComponent);
+      remove(prevFilterComponent);
     }
-
-    replace(this.#filterComponent, prevFilterComponent);
-    remove(prevFilterComponent);
   }
 
   #generateFilters() {
     const points = this.#pointModel.points;
-    const currentDate = new Date();
 
     return Object.values(FilterType).map((type) => ({
       type,
-      count: this.#getFilteredPoints(type, points, currentDate).length
+      count: filterPoints[type](points).length
     }));
-  }
-
-  #getFilteredPoints(filterType, points, currentDate) {
-    switch (filterType) {
-      case FilterType.EVERYTHING:
-        return points;
-      case FilterType.PAST:
-        return points.filter((point) => new Date(point.dateTo) < currentDate);
-      case FilterType.PRESENT:
-        return points.filter((point) => new Date(point.dateFrom) <= currentDate && new Date(point.dateTo) >= currentDate);
-      case FilterType.FUTURE:
-        return points.filter((point) => new Date(point.dateFrom) > currentDate);
-      default:
-        return points;
-    }
   }
 
   #handleFilterTypeChange(filterType) {
     if (this.#filterModel.filter === filterType) {
       return;
     }
-    this.#filterModel.setFilter(UpdateType.FILTER, filterType);
-    this.#pointModel.setFilter(filterType);
+    this.#filterModel.setFilter(UpdateType.MINOR, filterType);
   }
 }

@@ -8,7 +8,6 @@ export default class ListEmptyView extends AbstractView {
   get template() {
     return createEmptyListTemplate();
   }
-
 }
 
 function createEmptyListTemplate() {
