@@ -5,6 +5,165 @@ import flatpickr from 'flatpickr';
 import 'flatpickr/dist/flatpickr.min.css';
 import he from 'he';
 
+export default class EditFormView extends AbstractStatefulView {
+  #allOffers;
+  #allDestination;
+  #onFormSubmit;
+  #onEditButtonClick;
+  #onDeletePoint;
+  #datepickerStart;
+  #datepickerEnd;
+  #initialPoint;
+  #isNewPoint = false;
+
+  constructor(pointModel, offerModel, destinationModel, onFormSubmit, onDeletePoint, onEditButtonClick) {
+    super();
+    this.#initialPoint = pointModel;
+    this._setState(this.parsePointToState(pointModel));
+    this.#allOffers = offerModel;
+    this.#allDestination = destinationModel;
+    this.#onEditButtonClick = onEditButtonClick;
+    this.#isNewPoint = onEditButtonClick === undefined;
+    this.#onFormSubmit = onFormSubmit;
+    this.#onDeletePoint = onDeletePoint;
+    this._restoreHandlers();
+  }
+
+  get template() {
+    return createFormTemplate(this._state, this.#allOffers, this.#allDestination, this.#isNewPoint);
+  }
+
+  _restoreHandlers() {
+    this.element.querySelector('form').addEventListener('submit', this.#onFormStateSubmit);
+    if (!this.#isNewPoint) {
+      this.element.querySelector('.event__rollup-btn').addEventListener('click', this.#onEditButtonClick);
+    }
+    this.element.querySelector('.event__type-group').addEventListener('change', (evt) => {
+      this.#onTypeListChange(evt);
+    });
+    this.element.querySelector('.event__input--destination').addEventListener('change', (evt) => {
+      this.#onCityChange(evt);
+    });
+    this.element.querySelector('.event__reset-btn').addEventListener('click', (evt) => {
+      this.#onDeleteStateButton(evt);
+    });
+    this.element.querySelector('.event__input--price').addEventListener('input', this.#onPriceInput);
+    this.element.querySelectorAll('.event__offer-checkbox').forEach(
+      (checkbox) => checkbox.addEventListener('change', this.#onOfferChange)
+    );
+    this.#setDatepickerStart();
+    this.#setDatepickerEnd();
+  }
+
+  #setDatepickerStart = () => {
+    if (this.#datepickerStart) {
+      this.#datepickerStart.destroy();
+    }
+    this.#datepickerStart = flatpickr(this.element.querySelector('#event-start-time-1'), {
+      enableTime: true,
+      dateFormat: 'd/m/y H:i',
+      defaultDate: this._state.dateFrom,
+      onChange: (selectedDates) => {
+        this._setState({
+          dateFrom: selectedDates[0].toISOString()
+        });
+      }
+    });
+  };
+
+  #setDatepickerEnd = () => {
+    if (this.#datepickerEnd) {
+      this.#datepickerEnd.destroy();
+    }
+    this.#datepickerEnd = flatpickr(this.element.querySelector('#event-end-time-1'), {
+      enableTime: true,
+      dateFormat: 'd/m/y H:i',
+      defaultDate: this._state.dateTo,
+      onChange: (selectedDates) => {
+        this._setState({
+          dateTo: selectedDates[0].toISOString()
+        });
+      }
+    });
+  };
+
+  #onPriceInput = (evt) => {
+    const price = parseInt(evt.target.value, 10);
+    this._setState({
+      basePrice: price
+    });
+  };
+
+  #onOfferChange = (evt) => {
+    const offerId = evt.target.dataset.offerId;
+    const newOffers = evt.target.checked
+      ? [...this._state.offers, offerId]
+      : this._state.offers.filter((id) => id !== offerId);
+    this._setState({
+      offers: newOffers
+    });
+  };
+
+  #onFormStateSubmit = (evt) => {
+    evt.preventDefault();
+    const point = EditFormView.parseStateToPoint(this._state);
+    if (isNaN(point.basePrice) || point.basePrice <= 0 || !this._state.dateTo || !this._state.dateFrom
+      || new Date(this._state.dateFrom) >= new Date(this._state.dateTo) || !point.destination) {
+      this.shake();
+      return;
+    }
+    this.#onFormSubmit(evt, point);
+  };
+
+  #onCityChange = (evt) => {
+    const city = evt.target.value;
+    const newDestination = this.#allDestination.destinations.find((destination) => (destination.name || '') === city)?.id;
+    this.updateElement({
+      destination: newDestination || null
+    });
+  };
+
+  #onTypeListChange = (evt) => {
+    evt.preventDefault();
+    const targetType = evt.target.value;
+    const typeOffers = this.#allOffers.getOfferByType(targetType);
+    this.updateElement({
+      type: targetType,
+      typeOffers: typeOffers,
+    });
+  };
+
+  #onDeleteStateButton = (evt) => {
+    evt.preventDefault();
+    if (this.#isNewPoint) {
+      this.#onDeletePoint();
+    } else {
+      this.#onDeletePoint(EditFormView.parseStateToPoint(this._state));
+    }
+  };
+
+  resetToInitialState() {
+    this.updateElement(this.parsePointToState(this.#initialPoint));
+  }
+
+  parsePointToState(point) {
+    return {
+      ...point,
+      isDisabled: false,
+      isSaving: false,
+      isDeleting: false,
+    };
+  }
+
+  static parseStateToPoint(state) {
+    const point = { ...state };
+    delete point.isDisabled;
+    delete point.isSaving;
+    delete point.isDeleting;
+    return point;
+  }
+}
+
 function createFormTemplate(state, offerModel, destinationModel, isNewPoint) {
   const {
     basePrice,
@@ -135,150 +294,4 @@ function createFormTemplate(state, offerModel, destinationModel, isNewPoint) {
       </form>
     </li>
   `;
-}
-
-
-export default class EditFormView extends AbstractStatefulView {
-  #allOffers;
-  #allDestination;
-  #onFormSubmit;
-  #onEditButtonClick;
-  #onDeletePoint;
-  #datepickerStart;
-  #datepickerEnd;
-  #isNewPoint = false;
-
-  constructor(pointModel, offerModel, destinationModel, onFormSubmit, onDeletePoint, onEditButtonClick) {
-    super();
-    this._setState(this.parsePointToState(pointModel));
-    this.#allOffers = offerModel;
-    this.#allDestination = destinationModel;
-    this.#onEditButtonClick = onEditButtonClick;
-    this.#isNewPoint = onEditButtonClick === undefined;
-    this.#onFormSubmit = onFormSubmit;
-    this.#onDeletePoint = onDeletePoint;
-    this._restoreHandlers();
-  }
-
-  get template() {
-    return createFormTemplate(this._state, this.#allOffers, this.#allDestination, this.#isNewPoint);
-  }
-
-  _restoreHandlers() {
-    this.element.querySelector('form').addEventListener('submit', this.#onFormStateSubmit);
-    if (!this.#isNewPoint) {
-      this.element.querySelector('.event__rollup-btn').addEventListener('click', this.#onEditButtonClick);
-    }
-    this.element.querySelector('.event__type-group').addEventListener('change', (evt) => {
-      this.#onTypeListChange(evt);
-    });
-    this.element.querySelector('.event__input--destination').addEventListener('change', (evt) => {
-      this.#onCityChange(evt);
-    });
-    this.element.querySelector('.event__reset-btn').addEventListener('click', (evt) => {
-      this.#onDeleteStateButton(evt);
-    });
-    this.element.querySelector('.event__input--price').addEventListener('input', this.#onPriceInput);
-    this.element.querySelectorAll('.event__offer-checkbox').forEach(
-      (checkbox) => checkbox.addEventListener('change', this.#onOfferChange)
-    );
-    this.#setDatepickerStart();
-    this.#setDatepickerEnd();
-  }
-
-  #setDatepickerStart = () => {
-    if (this.#datepickerStart) {
-      this.#datepickerStart.destroy();
-    }
-    this.#datepickerStart = flatpickr(this.element.querySelector('#event-start-time-1'), {
-      enableTime: true,
-      dateFormat: 'd/m/y H:i',
-      onChange: (selectedDates) => {
-        if (selectedDates[0] < new Date(this._state.dateTo)) {
-          this._setState({ dateFrom: selectedDates[0].toISOString() });
-        }
-      }
-    });
-  };
-
-  #setDatepickerEnd = () => {
-    if (this.#datepickerEnd) {
-      this.#datepickerEnd.destroy();
-    }
-    this.#datepickerEnd = flatpickr(this.element.querySelector('#event-end-time-1'), {
-      enableTime: true,
-      dateFormat: 'd/m/y H:i',
-      onChange: (selectedDates) => {
-        if (selectedDates[0] > new Date(this._state.dateFrom)) {
-          this._setState({ dateTo: selectedDates[0].toISOString() });
-        }
-      }
-    });
-  };
-
-  #onPriceInput = (evt) => {
-    const price = parseInt(evt.target.value, 10);
-    if (!isNaN(price) && price > 0) {
-      this._setState({
-        basePrice: price
-      });
-    }
-  };
-
-  #onOfferChange = (evt) => {
-    const offerId = evt.target.dataset.offerId;
-    const newOffers = evt.target.checked
-      ? [...this._state.offers, offerId]
-      : this._state.offers.filter((id) => id !== offerId);
-    this._setState({
-      offers: newOffers
-    });
-  };
-
-  #onFormStateSubmit = (evt) => {
-    evt.preventDefault();
-    this.#onFormSubmit(evt, EditFormView.parseStateToPoint(this._state));
-  };
-
-  #onCityChange = (evt) => {
-    const city = evt.target.value;
-    const newDestination = this.#allDestination.destinations.find((destination) => (destination.name || '') === city)?.id;
-    if (newDestination) {
-      this.updateElement({
-        destination: newDestination
-      });
-    }
-  };
-
-  #onTypeListChange = (evt) => {
-    evt.preventDefault();
-    const targetType = evt.target.value;
-    const typeOffers = this.#allOffers.getOfferByType(targetType);
-    this.updateElement({
-      type: targetType,
-      typeOffers: typeOffers,
-    });
-  };
-
-  #onDeleteStateButton = (evt) => {
-    evt.preventDefault();
-    this.#onDeletePoint(EditFormView.parseStateToPoint(this._state));
-  };
-
-  parsePointToState(point) {
-    return {
-      ...point,
-      isDisabled: false,
-      isSaving: false,
-      isDeleting: false
-    };
-  }
-
-  static parseStateToPoint(state) {
-    const point = { ...state };
-    delete point.isDisabled;
-    delete point.isSaving;
-    delete point.isDeleting;
-    return point;
-  }
 }

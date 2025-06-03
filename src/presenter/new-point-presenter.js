@@ -7,7 +7,7 @@ export default class NewPointPresenter {
   #pointListContainer = null;
   #onDataChange = null;
   #onDestroy = null;
-
+  #currentPoint = null;
   #pointEditComponent = null;
 
   constructor(pointListContainer, onDataChange, onDestroy) {
@@ -20,10 +20,11 @@ export default class NewPointPresenter {
     if (this.#pointEditComponent !== null) {
       return;
     }
-    const blankPoint = {
+
+    this.#currentPoint = this.#currentPoint || {
       basePrice: 0,
-      dateFrom: new Date().toISOString(),
-      dateTo: new Date().toISOString(),
+      dateFrom: '',
+      dateTo: '',
       destination: 1,
       offers: [],
       type: 'flight',
@@ -31,7 +32,7 @@ export default class NewPointPresenter {
     };
 
     this.#pointEditComponent = new EditFormView(
-      blankPoint,
+      this.#currentPoint,
       offerModel,
       destinationModel,
       this.#onFormSubmit,
@@ -75,6 +76,7 @@ export default class NewPointPresenter {
   }
 
   #onFormSubmit = (_, point) => {
+    this.#currentPoint = point;
     this.#onDataChange(
       UserAction.ADD_POINT,
       UpdateType.MINOR,
