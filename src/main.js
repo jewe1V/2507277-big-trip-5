@@ -52,12 +52,13 @@ Promise.all([
 ]).then(() => {
   render(newPointButtonComponent, tripInfoContainer, RenderPosition.BEFOREEND);
   tripInfoPresenter.init();
-  filterPresenter.init();
-  mainPresenter.init();
   if (pointModel.isLoadingFailed || offerModel.isLoadingFailed || destinationModel.isLoadingFailed) {
     newPointButtonComponent.element.disabled = true;
   }
 });
+
+filterPresenter.init();
+mainPresenter.init();
 
 function onNewPointFormClose() {
   newPointButtonComponent.element.disabled = false;
