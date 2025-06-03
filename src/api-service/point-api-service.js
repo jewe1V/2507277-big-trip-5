@@ -14,9 +14,7 @@ export default class PointsApiService extends ApiService {
       headers: new Headers({ 'Content-Type': 'application/json' }),
     });
 
-    const parsedResponse = await ApiService.parseResponse(response);
-
-    return parsedResponse;
+    return await ApiService.parseResponse(response);
   }
 
   async addPoint(point) {
@@ -26,17 +24,14 @@ export default class PointsApiService extends ApiService {
       body: JSON.stringify(this.#adaptToServer(point)),
       headers: new Headers({ 'Content-Type': 'application/json' }),
     });
-    const parsedResponse = await ApiService.parseResponse(response);
-    return parsedResponse;
+    return await ApiService.parseResponse(response);
   }
 
   async deletePoint(point) {
-    const response = await this._load({
+    return await this._load({
       url: `points/${point.id}`,
       method: Method.DELETE,
     });
-
-    return response;
   }
 
   #adaptToServer(point) {

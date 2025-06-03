@@ -1,6 +1,6 @@
 import AbstractView from '../framework/view/abstract-view.js';
 
-export default class RoutePointListView extends AbstractView {
+export default class PointListView extends AbstractView {
   constructor() {
     super();
   }
