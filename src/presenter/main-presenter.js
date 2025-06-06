@@ -82,6 +82,10 @@ export default class MainPresenter {
     return this.#destinationModel;
   }
 
+  get container() {
+    return this.#listContainer;
+  }
+
   init() {
     this.#renderPoints();
   }
@@ -212,10 +216,6 @@ export default class MainPresenter {
 
   #renderError() {
     render(this.#errorComponent, this.#listContainer, RenderPosition.AFTERBEGIN);
-  }
-
-  get container() {
-    return this.#listContainer;
   }
 }
 

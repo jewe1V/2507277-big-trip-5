@@ -12,17 +12,6 @@ export default class DestinationModel extends Observable {
     this.#destinationApiService = destinationApiService;
   }
 
-  async init() {
-    try {
-      this.#destinations = await this.#destinationApiService.destinations;
-    } catch (e) {
-      this.#destinations = [];
-      this.#isLoadingFailed = true;
-    }
-    this.#isLoading = false;
-    this._notify(UpdateType.INIT, { isLoadingFailed: this.#isLoadingFailed });
-  }
-
   get destinations() {
     return [...this.#destinations];
   }
@@ -37,5 +26,16 @@ export default class DestinationModel extends Observable {
 
   get isLoadingFailed() {
     return this.#isLoadingFailed;
+  }
+
+  async init() {
+    try {
+      this.#destinations = await this.#destinationApiService.destinations;
+    } catch (e) {
+      this.#destinations = [];
+      this.#isLoadingFailed = true;
+    }
+    this.#isLoading = false;
+    this._notify(UpdateType.INIT, { isLoadingFailed: this.#isLoadingFailed });
   }
 }

@@ -12,17 +12,6 @@ export default class OfferModel extends Observable {
     this.#offersApiService = offersApiService;
   }
 
-  async init() {
-    try {
-      this.#offers = await this.#offersApiService.offers;
-    } catch (e) {
-      this.#offers = [];
-      this.#isLoadingFailed = true;
-    }
-    this.#isLoading = false;
-    this._notify(UpdateType.INIT, { isLoadingFailed: this.#isLoadingFailed });
-  }
-
   get isLoading() {
     return this.#isLoading;
   }
@@ -33,6 +22,17 @@ export default class OfferModel extends Observable {
 
   get offers() {
     return this.#offers;
+  }
+
+  async init() {
+    try {
+      this.#offers = await this.#offersApiService.offers;
+    } catch (e) {
+      this.#offers = [];
+      this.#isLoadingFailed = true;
+    }
+    this.#isLoading = false;
+    this._notify(UpdateType.INIT, { isLoadingFailed: this.#isLoadingFailed });
   }
 
   getOfferByType(type) {
